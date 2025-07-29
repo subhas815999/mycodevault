@@ -5,7 +5,7 @@ import random
 pygame.init()
 
 # Display setup
-WIDTH, HEIGHT = 800, 600
+WIDTH, HEIGHT = 1500, 800
 TILE_SIZE = 40
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Zombie Split – Ultimate Pixel Edition")
@@ -20,18 +20,13 @@ POWERUP_COLOR = (255, 215, 0)
 TEXT_COLOR = (255, 255, 255)
 CLOAK_COLOR = (0, 0, 0)
 FLASH_COLOR = (255, 255, 0)
+BORDER_COLOR = (255, 0, 0)
 
 font = pygame.font.SysFont(None, 32)
 clock = pygame.time.Clock()
 
 cols = WIDTH // TILE_SIZE
 rows = HEIGHT // TILE_SIZE
-
-# Game states
-menu_active = True
-control_screen = False
-round_over = False
-selected = {"left": None, "right": None}
 
 # Gameplay variables
 maze = []
@@ -47,6 +42,7 @@ survivor_speed = 4
 zombie_speed = 3
 stun_timer = 0
 step_survivor = step_zombie = 0
+round_over = False
 round_end_time = 0
 
 # -------------------------------------------------
@@ -105,39 +101,6 @@ def draw_fog():
     fog.fill((0, 0, 0))
     screen.blit(fog, (0, 0))
 
-def draw_menu():
-    screen.fill((25, 25, 25))
-    title = font.render("Zombie Split", True, TEXT_COLOR)
-    left = font.render("← LEFT: Zombie", True, ZOMBIE_COLOR)
-    right = font.render("→ RIGHT: Survivor", True, SURVIVOR_COLOR)
-    info = font.render("Press SPACE to continue", True, TEXT_COLOR)
-    screen.blit(title, (WIDTH // 2 - 80, HEIGHT // 4))
-    screen.blit(left, (WIDTH // 4 - 80, HEIGHT // 2))
-    screen.blit(right, (3 * WIDTH // 4 - 80, HEIGHT // 2))
-    screen.blit(info, (WIDTH // 2 - 130, 3 * HEIGHT // 4))
-
-def draw_controls():
-    screen.fill((15, 15, 15))
-    title = font.render("Controls", True, TEXT_COLOR)
-    left_controls = [
-        "Zombie – Arrow Keys to move",
-        "Avoid the survivor's flash!"
-    ]
-    right_controls = [
-        "Survivor – W/A/S/D to move",
-        "SPACE to activate cloak",
-        "F to flash if close to zombie"
-    ]
-    screen.blit(title, (WIDTH // 2 - 50, 40))
-    for i, line in enumerate(left_controls):
-        txt = font.render(line, True, ZOMBIE_COLOR)
-        screen.blit(txt, (100, 100 + i * 40))
-    for i, line in enumerate(right_controls):
-        txt = font.render(line, True, SURVIVOR_COLOR)
-        screen.blit(txt, (WIDTH // 2 + 20, 100 + i * 40))
-    info = font.render("Press SPACE to Start Game", True, TEXT_COLOR)
-    screen.blit(info, (WIDTH // 2 - 130, HEIGHT - 60))
-
 def reset_game():
     global maze, survivor, zombie, powerups
     global cloak, cloak_timer, cloak_cooldown
@@ -163,7 +126,12 @@ def reset_game():
     step_survivor = step_zombie = 0
 
 def can_move(rect, maze):
-    """Check if a character can move into the given position without hitting walls."""
+    """Check if a character can move into the given position without hitting walls or leaving screen."""
+    # Check screen boundary
+    if rect.left < 0 or rect.top < 0 or rect.right > WIDTH or rect.bottom > HEIGHT:
+        return False
+
+    # Check walls
     for px, py in [(rect.left, rect.top), (rect.right - 1, rect.top),
                    (rect.left, rect.bottom - 1), (rect.right - 1, rect.bottom - 1)]:
         gx, gy = px // TILE_SIZE, py // TILE_SIZE
@@ -182,7 +150,7 @@ def move(rect, up, down, left, right, speed):
     if can_move(new, maze):
         rect.x, rect.y = new.x, new.y
 
-# Initialize game
+# Start game immediately
 reset_game()
 
 # -------------------------------------------------
@@ -195,26 +163,6 @@ while True:
             sys.exit()
 
     keys = pygame.key.get_pressed()
-
-    # ------------------- MENU -------------------
-    if menu_active:
-        draw_menu()
-        if keys[pygame.K_LEFT]: selected["left"] = "Zombie"
-        if keys[pygame.K_RIGHT]: selected["right"] = "Survivor"
-        if keys[pygame.K_SPACE] and selected["left"] and selected["right"]:
-            menu_active = False
-            control_screen = True
-        pygame.display.flip()
-        continue
-
-    # ------------------- CONTROLS -------------------
-    if control_screen:
-        draw_controls()
-        if keys[pygame.K_SPACE]:
-            control_screen = False
-            reset_game()
-        pygame.display.flip()
-        continue
 
     # ------------------- ROUND OVER -------------------
     if round_over:
@@ -292,6 +240,9 @@ while True:
         for x in range(cols):
             if maze[y][x] == 1:
                 draw_wall(x, y)
+
+    # Draw screen boundary
+    pygame.draw.rect(screen, BORDER_COLOR, (0, 0, WIDTH, HEIGHT), 5)
 
     # Draw characters
     draw_pixel_char(survivor, SURVIVOR_COLOR, step_survivor, flash=(stun_timer > 0), cloak=cloak)
