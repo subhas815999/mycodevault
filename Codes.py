@@ -57,66 +57,35 @@ with open(filename, "r") as f:
 print(f"Lines: {linecount}, Words: {wordcount}, Chars: {char_count}")
 
 
-filename = "paragraphs.txt"
-
-Accept paragraphs
-paras = []
-while True:
-    line = input()
-    if line == "":
-        break
-    paras.append(line)
-
-Save to file
-with open(filename, "w") as f:
-    for p in paras:
-        f.write(p + "\n")
-
-Read and process
-longest_line = ""
-totalwords = totalchars = 0
-with open(filename, "r") as f:
-    for idx, line in enumerate(f, start=1):
-        line = line.rstrip("\n")
-        print(f"{idx}: {line}")
-        if len(line) > len(longest_line):
-            longest_line = line
-        total_words += len(line.split())
-        total_chars += len(line)
-
-print(f"Longest line: {longest_line}")
-print(f"Total words: {totalwords}, Total chars: {totalchars}")
-
-
--- List employee details along with salary
-SELECT e.*, s.salary
+-- 1. List employee details along with their salary
+SELECT e.emp_id, e.name, e.department, s.salary
 FROM EMPLOYEES e
-JOIN SALARIES s ON e.empid = s.empid;
+JOIN SALARIES s ON e.emp_id = s.emp_id;
 
--- Average salary by department
-SELECT department, AVG(salary) AS avg_salary
+-- 2. Find the average salary by department
+SELECT e.department, AVG(s.salary) AS avg_salary
 FROM EMPLOYEES e
-JOIN SALARIES s ON e.empid = s.empid
-GROUP BY department;
+JOIN SALARIES s ON e.emp_id = s.emp_id
+GROUP BY e.department;
 
--- Employees without salary records
-SELECT e.*
+-- 3. List employees without salary records
+SELECT e.emp_id, e.name, e.department
 FROM EMPLOYEES e
-LEFT JOIN SALARIES s ON e.empid = s.empid
+LEFT JOIN SALARIES s ON e.emp_id = s.emp_id
 WHERE s.emp_id IS NULL;
--- Show all enrollments with student's name
-SELECT s.studentname, e.courseid
+-- 1. Show all enrollments with the student's name
+SELECT s.student_id, s.name, e.course_id
 FROM STUDENTS s
-JOIN ENROLLMENTS e ON s.studentid = e.studentid;
+JOIN ENROLLMENTS e ON s.student_id = e.student_id;
 
--- Total number of courses each student is enrolled in
-SELECT s.studentname, COUNT(e.courseid) AS total_courses
+-- 2. Get the total number of courses each student is enrolled in
+SELECT s.student_id, s.name, COUNT(e.course_id) AS total_courses
 FROM STUDENTS s
-LEFT JOIN ENROLLMENTS e ON s.studentid = e.studentid
-GROUP BY s.student_name;
+LEFT JOIN ENROLLMENTS e ON s.student_id = e.student_id
+GROUP BY s.student_id, s.name;
 
--- Students not enrolled in any course
-SELECT s.*
+-- 3. List students not enrolled in any course
+SELECT s.student_id, s.name
 FROM STUDENTS s
-LEFT JOIN ENROLLMENTS e ON s.studentid = e.studentid
+LEFT JOIN ENROLLMENTS e ON s.student_id = e.student_id
 WHERE e.student_id IS NULL;
