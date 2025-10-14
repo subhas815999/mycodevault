@@ -691,8 +691,8 @@ class PowerUp:
 
                 if should_draw:
                     # Enhanced color with effects
-                    bright_color = [min(255, c + pulse + random.randint(-20, 20)) for c in color]
-
+                    # Clamp each channel between 0 and 255 and convert to int
+                    bright_color = [max(0, min(255, int(c))) for c in bright_color]
                     # Special effects for rare power-ups
                     if self.type == "invincible":
                         # Rainbow effect
