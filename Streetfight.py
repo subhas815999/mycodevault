@@ -493,36 +493,36 @@ class Fighter:
                              (int(dx + shake_x), int(dy + shake_y)), 3)
 
     def draw_health_bar(self, screen, x, y):
-        # Advanced health bar with effects
-        bar_width = 250
-        bar_height = 25
+     bar_width = 250
+     bar_height = 25
 
-        # Background with gradient effect
-        for i in range(bar_height):
-            gradient_color = (30 + i*2, 30 + i*2, 30 + i*2)
-            pygame.draw.rect(screen, gradient_color, (x, y + i, bar_width, 1))
+     for i in range(bar_height):
+        gradient_color = (30 + i * 2, 30 + i * 2, 30 + i * 2)
+        pygame.draw.rect(screen, gradient_color, (x, y + i, bar_width, 1))
 
-        # Health bar with color transition
-        health_ratio = self.health / self.max_health
-        health_width = int(health_ratio * bar_width)
+     health_ratio = self.health / self.max_health
+     health_width = int(health_ratio * bar_width)
+     if health_ratio > 0.6:
+        health_color = (0, int(255 * health_ratio), 0)
+     elif health_ratio > 0.3:
+        health_color = (255, 255, 0)
+     else:
+        health_color = (255, int(255 * health_ratio), 0)
+        
+     if health_ratio < 0.25:
+        pulse = int(50 * math.sin(time.time() * 10))
+        # Use clamp and int for each component to keep it within 0-255
+        health_color = tuple(max(0, min(255, int(c + pulse))) for c in health_color)
 
-        # Dynamic health color
-        if health_ratio > 0.6:
-            health_color = (0, int(255 * health_ratio), 0)
-        elif health_ratio > 0.3:
-            health_color = (255, 255, 0)
-        else:
-            health_color = (255, int(255 * health_ratio), 0)
+    # Ensure all color components are ints and within 0-255
+     health_color = tuple(max(0, min(255, int(c))) for c in health_color)
+     pygame.draw.rect(screen, health_color, (x, y, health_width, bar_height))
 
-        # Pulsing effect for low health
-        if health_ratio < 0.25:
-            pulse = int(50 * math.sin(time.time() * 10))
-            health_color = tuple(min(255, c + pulse) for c in health_color)
+    # ... rest of method unchanged ...
 
-        pygame.draw.rect(screen, health_color, (x, y, health_width, bar_height))
 
         # Power-up indicators on health bar
-        if self.power_effects:
+     if self.power_effects:
             indicator_width = bar_width // len(self.power_effects)
             for i, power_type in enumerate(self.power_effects):
                 power_colors = {
@@ -537,8 +537,8 @@ class Fighter:
                                    (x + i * indicator_width, y - 5, indicator_width - 2, 3))
 
         # Border with dynamic effect
-        border_color = (255, 255, 255) if not self.power_effects else (255, 255, 0)
-        pygame.draw.rect(screen, border_color, (x, y, bar_width, bar_height), 3)
+     border_color = (255, 255, 255) if not self.power_effects else (255, 255, 0)
+     pygame.draw.rect(screen, border_color, (x, y, bar_width, bar_height), 3)
 
 class PowerUp:
     def __init__(self, x, y):
@@ -691,8 +691,9 @@ class PowerUp:
 
                 if should_draw:
                     # Enhanced color with effects
-                    # Clamp each channel between 0 and 255 and convert to int
-                    bright_color = [max(0, min(255, int(c))) for c in bright_color]
+                    bright_color = [max(0,min(255, int(c + pulse + random.randint(-20, 20))
+                                              )) for c in color]
+
                     # Special effects for rare power-ups
                     if self.type == "invincible":
                         # Rainbow effect
@@ -919,13 +920,14 @@ class Game:
                 self.background_particles.remove(particle)
 
     def end_round(self, winner):
+        
         if winner == "Player 1":
             self.p1_wins += 1
         else:
             self.p2_wins += 1
 
         # Best of 3 rounds
-        if self.p1_wins >= 2 or self.p2_wins >= 2:
+        if self.p1_wins >= 9 or self.p2_wins >= 9:
             self.game_over = True
             self.winner = winner
         else:
