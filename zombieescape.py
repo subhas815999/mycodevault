@@ -54,7 +54,7 @@ def generate_maze():
     for y in range(rows):
         row = []
         for x in range(cols):
-            row.append(1 if random.random() < 0.22 else 0)
+            row.append(1 if random.random() < 0.222 else 0)
         maze.append(row)
     # Ensure start and end are empty
     maze[1][1] = 0
@@ -108,10 +108,18 @@ def reset_game():
     global survivor_speed, zombie_speed, stun_timer
     global step_survivor, step_zombie
 
-    maze = generate_maze()
-    survivor = pygame.Rect(50, 50, TILE_SIZE - 6, TILE_SIZE - 6)
-    zombie = pygame.Rect(WIDTH - 90, HEIGHT - 90, TILE_SIZE - 6, TILE_SIZE - 6)
-    powerups = spawn_powerups(maze, 6)
+    while True:
+        maze = generate_maze()
+        survivor_rect = pygame.Rect(50, 50, TILE_SIZE - 6, TILE_SIZE - 6)
+        zombie_rect = pygame.Rect(WIDTH - 90, HEIGHT - 90, TILE_SIZE - 6, TILE_SIZE - 6)
+
+        # Check spawn locations are not inside walls
+        if can_move(survivor_rect, maze) and can_move(zombie_rect, maze):
+            break
+
+    survivor = survivor_rect
+    zombie = zombie_rect
+    powerups = spawn_powerups(maze, 10)
     survivor_speed = 4
     zombie_speed = 3
     cloak = False
@@ -119,11 +127,12 @@ def reset_game():
     cloak_cooldown = 0
     infected = False
     stun_timer = 0
-    game_timer = 90
+    game_timer = 100
     start_ticks = pygame.time.get_ticks()
     round_over = False
     round_end_time = 0
     step_survivor = step_zombie = 0
+
 
 def can_move(rect, maze):
     """Check if a character can move into the given position without hitting walls or leaving screen."""
